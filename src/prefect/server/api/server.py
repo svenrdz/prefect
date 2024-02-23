@@ -34,6 +34,8 @@ from prefect._internal.compatibility.experimental import enabled_experiments
 from prefect.client.constants import SERVER_API_VERSION
 from prefect.logging import get_logger
 from prefect.server.api.dependencies import EnforceMinimumAPIVersion
+# from prefect.server.admin.toto import create_admin_app, add_admin_views
+from prefect.server.admin.toto import create_admin_app
 from prefect.server.exceptions import ObjectNotFoundError
 from prefect.server.utilities.database import get_dialect
 from prefect.server.utilities.server import method_paths_from_routes
@@ -543,6 +545,14 @@ def create_app(
         },
     )
     ui_app = create_ui_app(ephemeral)
+
+    if True:
+        # https://github.com/jowilf/starlette-admin
+        admin_app = create_admin_app()
+        admin_app.mount_to(app)
+    # else:
+    #     # https://github.com/aminalaee/sqladmin
+    #     add_admin_views(app)
 
     # middleware
     app.add_middleware(
