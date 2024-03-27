@@ -1,0 +1,19 @@
+#!/bin/bash
+VERSION=$1
+OUR_COPY=src/prefect/_vendor/fastapi_users_db_sqlalchemy
+
+rm -Rf /tmp/fastapi_users_db_sqlalchemy
+git clone https://github.com/fastapi-users/fastapi-users-db-sqlalchemy -b $VERSION /tmp/fastapi_users_db_sqlalchemy
+rsync -ravP --delete /tmp/fastapi_users_db_sqlalchemy/fastapi_users_db_sqlalchemy/ $OUR_COPY
+
+for file in `find ${OUR_COPY} -name '*.py'`; do
+    # change all of the fastapi imports to prefect._vendor.fastapi
+    sed -i -e 's/from fastapi/from prefect._vendor.fastapi/g' $file
+    sed -i -e 's/import fastapi/import prefect._vendor.fastapi/g' $file
+    # change all of the fastapi_users imports to prefect._vendor.fastapi_users
+    sed -i -e 's/from fastapi_users/from prefect._vendor.fastapi_users/g' $file
+    sed -i -e 's/import fastapi_users/import prefect._vendor.fastapi_users/g' $file
+    # change all of the fastapi_users_db_sqlalchemy imports to prefect._vendor.fastapi_users_db_sqlalchemy
+    sed -i -e 's/from fastapi_users_db_sqlalchemy/from prefect._vendor.fastapi_users_db_sqlalchemy/g' $file
+    sed -i -e 's/import fastapi_users_db_sqlalchemy/import prefect._vendor.fastapi_users_db_sqlalchemy/g' $file
+done
