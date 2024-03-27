@@ -2,6 +2,11 @@
 Defines the Prefect REST API FastAPI app.
 """
 
+from prefect.server.admin.includes import include_all
+from prefect.server.admin.includes import add_policy_api
+from prefect.server.admin.includes import add_policy_ui
+from prefect.server.admin.db import create_db_and_tables
+
 import asyncio
 import mimetypes
 import os
@@ -275,6 +280,7 @@ def create_api_app(
     """
     fast_api_app_kwargs = fast_api_app_kwargs or {}
     api_app = FastAPI(title=API_TITLE, **fast_api_app_kwargs)
+    add_policy_api(api_app)
     api_app.add_middleware(GZipMiddleware)
 
     @api_app.get(health_check_path, tags=["Root"])
@@ -342,6 +348,7 @@ def create_ui_app(ephemeral: bool) -> FastAPI:
         or prefect.__ui_static_subpath__
     )
     reference_file_name = "UI_SERVE_BASE"
+    add_policy_ui(ui_app)
 
     if os.name == "nt":
         # Windows defaults to text/plain for .js files
@@ -592,6 +599,7 @@ def create_app(
     async def lifespan(app):
         try:
             await run_migrations()
+            await create_db_and_tables()
             await add_block_types()
             await start_services()
             yield
@@ -628,6 +636,7 @@ def create_app(
         },
     )
     ui_app = create_ui_app(ephemeral)
+    include_all(app, ui_app, api_app)
 
     # middleware
     app.add_middleware(
