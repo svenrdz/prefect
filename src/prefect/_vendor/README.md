@@ -27,3 +27,7 @@ have also done in `requirements-client.txt`
 
 We can remove our vendored FastAPI and Starlette and move to the latest version after
 the deprecation period for pydantic v1 support has passed.
+
+* ./src/prefect/_vendor/vendor-fastapi-users v13.0.0
+* ./src/prefect/_vendor/vendor-fastapi-users-db-sqlalchemy v6.0.1
+* ./src/prefect/_vendor/vendor-httpx-oauth v0.13.2
