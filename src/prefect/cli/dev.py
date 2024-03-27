@@ -290,6 +290,20 @@ async def agent(
 
 
 @dev_app.command()
+def debug(
+    host: str = SettingsOption(PREFECT_SERVER_API_HOST),
+    port: int = SettingsOption(PREFECT_SERVER_API_PORT),
+):
+    import uvicorn
+    from prefect.server.api.server import create_app
+
+    uvicorn.run(
+        create_app(),
+        host=host,
+        port=port,
+    )
+
+@dev_app.command()
 async def start(
     exclude_api: bool = typer.Option(False, "--no-api"),
     exclude_ui: bool = typer.Option(False, "--no-ui"),
