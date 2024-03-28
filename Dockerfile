@@ -1,5 +1,5 @@
 # The version of Python in the final image
-ARG PYTHON_VERSION=3.8
+ARG PYTHON_VERSION=3.10
 # The base image to use for the final image; Prefect and its Python requirements will
 # be installed in this image. The default is the official Python slim image.
 # The following images are also available in this file:
@@ -7,7 +7,7 @@ ARG PYTHON_VERSION=3.8
 # Any image tag can be used, but it must have apt and pip.
 ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim
 # The version used to build the Python distributable.
-ARG BUILD_PYTHON_VERSION=3.8
+ARG BUILD_PYTHON_VERSION=3.10
 # THe version used to build the UI distributable.
 ARG NODE_VERSION=16.15
 # Any extra Python requirements to install
@@ -116,6 +116,10 @@ RUN pip install --no-cache-dir "./dist/prefect.tar.gz${PREFECT_EXTRAS}"
 
 ARG EXTRA_PIP_PACKAGES=${EXTRA_PIP_PACKAGES:-""}
 RUN [ -z "${EXTRA_PIP_PACKAGES}" ] || pip install --no-cache-dir "${EXTRA_PIP_PACKAGES}"
+RUN pip install --no-cache-dir \
+    "makefun<2.0.0,>=1.11.2" \
+    "pyjwt[crypto]==2.8.0" \
+    "pwdlib[argon2,bcrypt]==0.2.0"
 
 # Smoke test
 RUN prefect version

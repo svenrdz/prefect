@@ -15,7 +15,7 @@ from prefect.server.admin.users import (
     cookie_backend,
     fastapi_users,
     get_route_policy,
-    keycloak_client,
+    oidc_client,
 )
 
 
@@ -50,19 +50,25 @@ ui_policy = get_route_policy(
 
 
 def add_policy_api(api: FastAPI):
+    if oidc_client is None:
+        return
     api.router.dependencies.append(Depends(api_policy))
 
 
 def add_policy_ui(ui: FastAPI):
+    if oidc_client is None:
+        return
     ui.add_exception_handler(RequiresLogin, redirect_login)
     ui.router.dependencies.append(Depends(ui_policy))
 
 
 def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
+    if oidc_client is None:
+        return
     app.add_middleware(SessionMiddleware, secret_key=TOTO)
 
     @app.get("/login", name="login")
-    async def keycloak_login(
+    async def oidc_login(
         request: Request,
         client=Depends(get_async_client),
     ):
@@ -74,10 +80,10 @@ def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
     ui.include_router(cloud_app, prefix="", tags=["cloud"])
     api.include_router(cloud_api, prefix="", tags=["cloud"])
 
-    # oauth (keycloak)
+    # oauth (OpenID Connect)
     app.include_router(
         fastapi_users.get_oauth_router(
-            keycloak_client,
+            oidc_client,
             bearer_backend,
             TOTO,
             associate_by_email=True,
@@ -88,7 +94,7 @@ def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
     )
     app.include_router(
         fastapi_users.get_oauth_router(
-            keycloak_client,
+            oidc_client,
             cookie_backend,
             TOTO,
             associate_by_email=True,
