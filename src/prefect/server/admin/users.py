@@ -1,5 +1,5 @@
-import os
 import uuid
+import warnings
 from fnmatch import fnmatch
 
 from prefect._vendor.fastapi import Depends, Request
@@ -38,11 +38,28 @@ cookie_backend = AuthenticationBackend(
     transport=cookie_transport,
     get_strategy=get_database_strategy,
 )
-keycloak_client = OpenID(
-    PREFECT_AUTH_OIDC_CLIENT_ID,
-    PREFECT_AUTH_OIDC_CLIENT_SECRET,
-    PREFECT_AUTH_OIDC_URL,
-)
+
+if (
+    PREFECT_AUTH_OIDC_CLIENT_ID is None
+    or PREFECT_AUTH_OIDC_CLIENT_SECRET is None
+    or PREFECT_AUTH_OIDC_URL is None
+):
+    oidc_client = None
+    warnings.warn(
+        """
+        OpenID Connect is disabled.
+        To enable it, set these environment variables:
+            PREFECT_AUTH_OIDC_CLIENT_ID
+            PREFECT_AUTH_OIDC_CLIENT_SECRET
+            PREFECT_AUTH_OIDC_URL
+        """.strip()
+    )
+else:
+    oidc_client = OpenID(
+        PREFECT_AUTH_OIDC_CLIENT_ID,
+        PREFECT_AUTH_OIDC_CLIENT_SECRET,
+        PREFECT_AUTH_OIDC_URL,
+    )
 
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](
