@@ -11,11 +11,11 @@ from prefect.server.admin.cloud import cloud_api, cloud_app
 from prefect.server.admin.db import TOTO
 from prefect.server.admin.dependencies import get_async_client
 from prefect.server.admin.users import (
+    OIDC,
     bearer_backend,
     cookie_backend,
     fastapi_users,
     get_route_policy,
-    oidc_client,
 )
 
 
@@ -50,20 +50,20 @@ ui_policy = get_route_policy(
 
 
 def add_policy_api(api: FastAPI):
-    if oidc_client is None:
+    if OIDC.client is None:
         return
     api.router.dependencies.append(Depends(api_policy))
 
 
 def add_policy_ui(ui: FastAPI):
-    if oidc_client is None:
+    if OIDC.client is None:
         return
     ui.add_exception_handler(RequiresLogin, redirect_login)
     ui.router.dependencies.append(Depends(ui_policy))
 
 
 def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
-    if oidc_client is None:
+    if OIDC.client is None:
         return
     app.add_middleware(SessionMiddleware, secret_key=TOTO)
 
@@ -83,7 +83,7 @@ def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
     # oauth (OpenID Connect)
     app.include_router(
         fastapi_users.get_oauth_router(
-            oidc_client,
+            OIDC.client,
             bearer_backend,
             TOTO,
             associate_by_email=True,
@@ -94,7 +94,7 @@ def include_all(app: FastAPI, ui: FastAPI, api: FastAPI):
     )
     app.include_router(
         fastapi_users.get_oauth_router(
-            oidc_client,
+            OIDC.client,
             cookie_backend,
             TOTO,
             associate_by_email=True,
