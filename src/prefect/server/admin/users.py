@@ -39,28 +39,45 @@ cookie_backend = AuthenticationBackend(
     get_strategy=get_database_strategy,
 )
 
-if (
-    PREFECT_AUTH_OIDC_CLIENT_ID is None
-    or PREFECT_AUTH_OIDC_CLIENT_SECRET is None
-    or PREFECT_AUTH_OIDC_URL is None
-):
-    oidc_client = None
-    warnings.warn(
-        """
-        OpenID Connect is disabled.
-        To enable it, set these environment variables:
-            PREFECT_AUTH_OIDC_CLIENT_ID
-            PREFECT_AUTH_OIDC_CLIENT_SECRET
-            PREFECT_AUTH_OIDC_URL
-        """.strip()
-    )
-else:
-    oidc_client = OpenID(
-        PREFECT_AUTH_OIDC_CLIENT_ID,
-        PREFECT_AUTH_OIDC_CLIENT_SECRET,
-        PREFECT_AUTH_OIDC_URL,
-    )
 
+def _get_oidc_client():
+    if (
+        PREFECT_AUTH_OIDC_CLIENT_ID is None
+        or PREFECT_AUTH_OIDC_CLIENT_SECRET is None
+        or PREFECT_AUTH_OIDC_URL is None
+    ):
+        warnings.warn(
+            """
+            OpenID Connect is disabled.
+            To enable it, set these environment variables:
+                PREFECT_AUTH_OIDC_CLIENT_ID
+                PREFECT_AUTH_OIDC_CLIENT_SECRET
+                PREFECT_AUTH_OIDC_URL
+            """.strip()
+        )
+        return False
+    else:
+        return OpenID(
+            PREFECT_AUTH_OIDC_CLIENT_ID,
+            PREFECT_AUTH_OIDC_CLIENT_SECRET,
+            PREFECT_AUTH_OIDC_URL,
+        )
+
+
+class _OIDC:
+    def __init__(self):
+        self.is_setup = False
+        self._client = None
+
+    @property
+    def client(self):
+        if not self.is_setup:
+            self._client = _get_oidc_client()
+            self.is_setup = True
+        return self._client
+
+
+OIDC = _OIDC()
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](
     get_user_manager,
