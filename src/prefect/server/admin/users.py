@@ -55,7 +55,7 @@ def _get_oidc_client():
                 PREFECT_AUTH_OIDC_URL
             """.strip()
         )
-        return False
+        return None
     else:
         return OpenID(
             PREFECT_AUTH_OIDC_CLIENT_ID,
